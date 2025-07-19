@@ -1,0 +1,24 @@
+apiVersion: v2
+name: harbor-project-proxy
+description: A Helm chart for Harbor Project Proxy with Nginx
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: nginx
+    version: "15.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+
+keywords:
+  - nginx
+  - proxy
+  - harbor
+
+maintainers:
+  - name: Xudong Huang
+    email: me@huangxudong.com
+
+home: https://github.com/xudongcc/harbor-project-proxy
+sources:
+  - https://github.com/xudongcc/harbor-project-proxy

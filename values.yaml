@@ -1,0 +1,65 @@
+# prettier-ignore
+
+global:
+  harborUrl: http://harbor-core
+
+nginx:
+  ingress:
+    enabled: false
+    hostname: docker.harbor.local
+    annotations: {}
+    tls: false
+
+  serverBlock: |-
+    map $host $harbor_project {
+      default 0;
+      ~^(?<project>[^.]+)\.(.*)$ $project;
+    }
+
+    map "$harbor_project#$request_uri" $harbor_registry_uri {
+      default $request_uri;
+      "~^0#.*$" $request_uri;
+      "~^.+#/v2/_catalog.*$" $request_uri;
+      "~^.+#/v2/(.+)(/tags/list.*)$" /v2/$harbor_project/$1$2;
+      "~^.+#/v2/(.+)(/blobs/uploads.*)$" /v2/$harbor_project/$1$2;
+      "~^.+#/v2/([^/]+)(.*)$" /v2/$harbor_project/library/$1$2;
+      "~^.+#/v2/([^?]+)(.*)$" /v2/$harbor_project/$1;
+    }
+
+    map $args $harbor_args {
+      default $args;
+      ~^(?<arg_prefix>.*scope=repository%3A)(?<arg_suffix>.*)$ $arg_prefix$harbor_project%2F$arg_suffix;
+    }
+
+    map $upstream_http_www_authenticate $harbor_authenticate_header {
+      default $upstream_http_www_authenticate;
+      ~^(?<header_prefix>.*http.+//).*(?<header_suffix>/service/token.*)$ $header_prefix$http_host$header_suffix;
+    }
+
+    server {
+      listen       8080;
+      server_name  _;
+
+      location / {
+        root  /usr/share/nginx/html;
+        index index.html index.htm;
+      }
+
+      location /v2/ {
+        rewrite ^/v2/(.+)$  $harbor_registry_uri break;
+        proxy_hide_header   Www-Authenticate;
+        add_header          Www-Authenticate $harbor_authenticate_header always;
+        proxy_pass          {{ .Values.global.harborUrl }};
+      }
+
+      location /service/ {
+        set $args   $harbor_args;
+        proxy_pass  {{ .Values.global.harborUrl }};
+      }
+
+      location = /50x.html {
+        root  /usr/share/nginx/html;
+      }
+
+      error_page 500 502 503 504 /50x.html;
+    }
