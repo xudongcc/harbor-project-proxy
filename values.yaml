@@ -10,6 +10,9 @@ nginx:
     annotations: {}
     tls: false
 
+  service:
+    type: ClusterIP
+
   serverBlock: |-
     map $host $harbor_project {
       default 0;
