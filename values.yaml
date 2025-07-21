@@ -25,6 +25,7 @@ nginx:
       "~^.+#/v2/_catalog.*$" $request_uri;
       "~^.+#/v2/(.+)(/tags/list.*)$" /v2/$harbor_project/$1$2;
       "~^.+#/v2/(.+)(/blobs/uploads.*)$" /v2/$harbor_project/$1$2;
+      "~^.+#/v2/([^/]+/[^/]+)(.*)$" /v2/$harbor_project/$1$2;
       "~^.+#/v2/([^/]+)(.*)$" /v2/$harbor_project/library/$1$2;
       "~^.+#/v2/([^?]+)(.*)$" /v2/$harbor_project/$1;
     }
